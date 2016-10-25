@@ -20,22 +20,30 @@ date <- date_original[,-which(names(date_original) %in% names(which(colSums(is.n
 
 #Removed attributes that did not appear to be useful
 date <- date[,-which(names(date) %in%
-                       c('condtn', 'position', 'positin1', 'undergrd', 'field', 'career'))]
+                       c('condtn', 'position', 'positin1', 'undergrd', 'field', 'career', 'zipcode', 'goal',
+                         'date', 'go_out'))]
+
 
 #Viewing ones on a different scale -- appears data from 1 to 10 has been re-scaled
 different_scale <- subset(date, wave %in% c(6,7,8,9))
 
+#Rearranged columns to place relevant/matching information side-by-side
+#Removed post-date follow-up Time2 metrics other than satis_2
+date2 <- date[,c(1:9, 12:14, 31, 33, 34, 35, 11, 10, 21, 79, 88, 30, 89:92, 15:20, 68:73, 56:61, 62:67, 22:27, 80:85,
+                 28, 86, 29, 87, 74:78, 93:98, 32, 37, 36, 38:55)]
+
+#Viewing differences in column names to ensure that everything carried over properly
+setdiff(names(date), names(date2))
+
 #Viewing correlations
 correlation_cutoff <- 0.75
 correlationMatrix <- cor(date[,-which(names(date)
-                         %in% c('id', 'iid', 'idg', 'partner', 'pid', 'from','zipcode'))],
+                         %in% c('id', 'iid', 'idg', 'partner', 'pid', 'from'))],
                          use = "complete.obs")
 correlated <- findCorrelation(correlationMatrix, cutoff=correlation_cutoff)
 correlationMatrix2 <- as.data.frame(correlationMatrix)
 print(correlated)
 
-colnames <- colnames(date)
-correlated_names <- colnames[correlated]
 correlationMatrix2 <- correlationMatrix2[,correlated]
 correlationMatrix2 <- subset(correlationMatrix2, (attr1_2 >= correlation_cutoff| attr3_2  >= correlation_cutoff
                                                   | amb3_2  >= correlation_cutoff | museums  >= correlation_cutoff))
