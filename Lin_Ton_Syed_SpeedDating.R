@@ -1,6 +1,7 @@
 #Libraries Needed
 library(caret)
 library(corrplot)
+library(DMwR)
 
 #Import Data
 #Data should be sourced within the project, using relative path
@@ -15,9 +16,6 @@ date_original[date_original == ""] <- NA
 c(names(which(colSums(is.na(date_original))>3000)))
 date <- date_original[,-which(names(date_original) %in% names(which(colSums(is.na(date_original))>3000)))]
 
-#Removed commas in variables
-#date[] <- lapply(date, function(x) gsub(",","", x)) #Not sure if this is completely needed, converts all to chars
-
 #Removed attributes that did not appear to be useful
 date <- date[,-which(names(date) %in%
                        c('condtn', 'position', 'positin1', 'undergrd', 'field', 'career', 'zipcode', 'goal',
@@ -25,7 +23,7 @@ date <- date[,-which(names(date) %in%
 
 
 #Viewing ones on a different scale -- appears data from 1 to 10 has been re-scaled
-different_scale <- subset(date, wave %in% c(6,7,8,9))
+different_scale <- subset(date, date$wave %in% c(6,7,8,9))
 
 #Rearranged columns to place relevant/matching information side-by-side
 #Removed post-date follow-up Time2 metrics other than satis_2
@@ -34,6 +32,10 @@ date2 <- date[,c(1:9, 12:14, 31, 33, 34, 35, 11, 10, 21, 79, 88, 30, 89:92, 15:2
 
 #Viewing differences in column names to ensure that everything carried over properly
 setdiff(names(date), names(date2))
+
+#Viewing observations with many NAs
+manyNAs(date2,0.2)
+date3 <- date2[-manyNAs(date2),]
 
 #Viewing correlations
 correlation_cutoff <- 0.75
