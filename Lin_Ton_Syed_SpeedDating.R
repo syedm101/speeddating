@@ -5,6 +5,7 @@ library(DMwR)
 library(ggplot2)
 library(reshape2)
 library(plyr)
+library(data.table)
 
 #Import Data
 #Data should be sourced within the project, using relative path
@@ -134,3 +135,29 @@ cbPalette <- c("#56B4E9", "#ffb3e6")
 means3_graph <- ggplot(means3c,aes(x=variable,y=value,fill=factor(gender)))+ geom_bar(stat="identity",position="dodge")+
   scale_fill_manual(values = cbPalette, name="Key", breaks=c(0, 1), labels=c("What Males Want", "What Females Think Males Want")) + 
   xlab("Attribute")+ylab("Mean Rating") + ggtitle('Female Perceptions of the other Sex vs. Reality')
+
+#Exporing Date Order in the Night and Matches--Best time/order to speed date?
+match_time <- date3[, c("wave", "order", "match")]
+match_time$wave <- factor(match_time$wave)
+match_time2 <- aggregate(match~order+wave,data=match_time,FUN=sum)
+
+##Scatter plot with number of matches vs. order, grouped by wave
+time_scatter <- ggplot(data = match_time2, aes(x = order, y = match, colour = wave)) +       
+                geom_jitter(aes(group = wave)) + geom_point() + ggtitle('Number of Matches vs. Order in the Night by Wave')
+
+match_time3 <- match_time2
+match_time3$order1 <- match_time3$order
+match_time3$order <- NULL
+match_time3 <- sqldf("select order1, wave, max(match) from match_time3 group by wave")
+
+##We looked at each wave and the order in the wave that had the most matches. We then plotted the frequency of the occurances
+##by order.
+match_time_graph <- ggplot(match_time3,aes(order1)) + geom_bar() + xlab("Order")+ 
+  ylab("Count where matches were a maximum") + ggtitle('Occurance of the Max Number of Matches in Each Wave')
+
+
+match_time4 <- sqldf("select wave, avg(match) as MatchAvg from match_time2 group by wave")
+
+##We looked at the Average Matches per order for all waves
+match_time_graph2 <- ggplot(match_time4,aes(x=wave, y=MatchAvg)) + geom_bar(stat="identity") + xlab("Order")+ 
+  ylab("Average Matches") + ggtitle('Average Matches per Order for all Waves')
