@@ -5,7 +5,6 @@ library(DMwR)
 library(ggplot2)
 library(reshape2)
 library(plyr)
-library(data.table)
 
 #Import Data
 #Data should be sourced within the project, using relative path
@@ -135,6 +134,28 @@ cbPalette <- c("#56B4E9", "#ffb3e6")
 means3_graph <- ggplot(means3c,aes(x=variable,y=value,fill=factor(gender)))+ geom_bar(stat="identity",position="dodge")+
   scale_fill_manual(values = cbPalette, name="Key", breaks=c(0, 1), labels=c("What Males Want", "What Females Think Males Want")) + 
   xlab("Attribute")+ylab("Mean Rating") + ggtitle('Female Perceptions of the other Sex vs. Reality')
+
+#Who put 100 for attractiveness and how successful were they? Exploration for humor's sake
+hundred_attr <- subset(date3, date3$attr1_1 == 100)
+
+#All males marked 100 for desired attractiveness
+hundred_attr_graph <- ggplot(hundred_attr,aes(factor(gender, levels = c(0,1)), ,fill=factor(gender)))+ geom_bar() + 
+  scale_fill_manual(values = cbPalette, name="Key", breaks=c(0, 1), labels=c("Females", "Males")) + 
+  xlab("Sex")+ylab("Count of Individuals") + ggtitle('Individuals who marked 100 for Desired Attractiveness') + 
+  scale_x_discrete(drop=FALSE)
+
+#How successful were they?
+hundred_attr_graph_success <- ggplot(hundred_attr,aes(factor(match, levels = c(0,1)), ,fill=factor(match)))+ 
+  geom_bar() + scale_fill_manual(values = cbPalette, name="Key", breaks=c(0, 1), labels=c("No Match", "Match")) + 
+  xlab("Match")+ylab("Count of Matches") + ggtitle('Individuals who marked 100 for Desired Attractiveness, Outcomes') + 
+  scale_x_discrete(drop=FALSE)
+
+#Was it because they were really picky?
+hundred_attr_graph_success2 <- ggplot(hundred_attr,aes(factor(dec, levels = c(0,1)), ,fill=factor(match)))+ geom_bar() + 
+  scale_fill_manual(values = cbPalette, name="Key", breaks=c(0, 1), labels=c("Did not want to see again", "Wanted to see again")) + 
+  xlab("Decision by Male")+ylab("Count of Decisions") + ggtitle('Individuals who marked 100 for Desired Attractiveness, Decisions') + 
+  scale_x_discrete(drop=FALSE)
+
 
 #Exporing Date Order in the Night and Matches--Best time/order to speed date?
 match_time <- date3[, c("wave", "order", "match")]
