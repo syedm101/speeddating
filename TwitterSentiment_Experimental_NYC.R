@@ -141,7 +141,7 @@ head(Score)
 
 ## Let’s plot a histogram of the sentiment score:
   
-hist(Score$score,xlab="Sentiment Score ",main="Sentiment of sample tweets that have 'Speed Dating' in them ",
+hist(Score$score,xlab="Sentiment Score ",main="Sentiment of sample tweets that have 'Dating' in them in NYC ",
        border="black",col="skyblue")
 
 ## We can calculate overall sentiment by adding together all of the scores:
