@@ -34,7 +34,7 @@ setup_twitter_oauth(key, secret, access_token, access_token_secret)
 save(authenticate, file="twitter authentication.Rdata")
 
 # harvest some tweets
-some_tweets = searchTwitter("dating", n=2000, lang="en", geocode='38.0293,-78.4767,30mi', retryOnRateLimit=120)
+some_tweets = searchTwitter("date", n=2000, lang="en", geocode='38.0293,-78.4767,30mi', retryOnRateLimit=120)
 
 # get the text
 some_txt = sapply(some_tweets, function(x) x$getText())
@@ -70,6 +70,8 @@ some_txt = sapply(some_txt, try.error)
 # remove NAs in some_txt
 some_txt = some_txt[!is.na(some_txt)]
 some_txt = gsub("adultfriendfinderthe", "", some_txt)
+some_txt = gsub("sex dating site", "", some_txt)
+
 names(some_txt) = NULL
 
 
@@ -142,7 +144,7 @@ head(Score)
 
 ## Let’s plot a histogram of the sentiment score:
   
-hist(Score$score,xlab="Sentiment Score ",main="Sentiment of sample tweets that have 'Dating' in Cville ",
+hist(Score$score,xlab="Sentiment Score ",main="Sentiment of sample tweets that have 'Date' in Cville ",
        border="black",col="skyblue")
 
 ## We can calculate overall sentiment by adding together all of the scores:
