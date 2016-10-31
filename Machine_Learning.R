@@ -112,6 +112,6 @@ ctree_pred <- predict(tree_model,d_test[,-1])
 CrossTable(d_test$dec_o, ctree_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('Actual Type', 'Predicted Type'))
-#Much less accuracy? interesting
+#has ~.749 accuracy
 
 
