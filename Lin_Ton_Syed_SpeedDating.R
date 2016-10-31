@@ -5,6 +5,12 @@ library(DMwR)
 library(ggplot2)
 library(reshape2)
 library(plyr)
+library(sqldf)
+library(mlbench)
+library(randomForest)
+library(gmodels)
+library(party)
+library(C50)
 
 #Import Data
 #Data should be sourced within the project, using relative path
@@ -176,3 +182,75 @@ match_time4 <- sqldf("select wave, avg(match) as MatchAvg from match_time2 group
 ##We looked at the Average Matches per order for all waves
 match_time_graph2 <- ggplot(match_time4,aes(x=wave, y=MatchAvg)) + geom_bar(stat="identity") + xlab("Order")+ 
   ylab("Average Matches") + ggtitle('Average Matches per Order for all Waves')
+
+#*************************************
+#####Begin Machine learning process####
+
+#Classify the decision of a partner based on their rating of you
+#The classifier is "dec_o" and the attributes "attr_o	sinc_o	intel_o	fun_o	amb_o	shar_o"
+
+#returns the column number (so I can easily subset the data)
+grep("^dec_o$", colnames(date3) ) #19th column
+grep("^attr_o$", colnames(date3) ) #45th column
+grep("^shar_o$", colnames(date3) ) #50th column
+View(date3)
+
+#subset data and view it to make sure it seems right
+rel_data = date3[,c(19,45:50)]
+View(rel_data)#Has around 8000 rows
+
+sum(is.na(rel_data)) #Need to be wary of NAs
+rel_data <- na.omit(rel_data) #remove all rows with NAs (still have ~7000 rows after this operation)
+
+#Randomly order the data
+set.seed(7)
+rel_data <- rel_data[order(runif(6965)), ]
+#Set dec_o as factor
+rel_data$dec_o <- factor(rel_data$dec_o)
+
+#Split the data ~80 training 20 testing
+d_train <- rel_data[(1:5500),]
+d_test <- rel_data[5500:6965,]
+
+#One way to look at attribute importance
+model <- train(dec_o ~., data=d_train, method="lvq", preProcess="scale")#, trControl=control)
+# estimate variable importance
+importance <- varImp(model, scale=FALSE)
+print(importance)
+plot(importance, ylab = 'Attributes', main = 'Attribute Importance')
+
+#Perform Feature Selection
+# load the libraries
+set.seed(7)
+View(d_train[,-1])
+
+control <- rfeControl(functions=rfFuncs, method="cv", number=10) #number = 10?
+results <- rfe(d_train[,-1], d_train$dec_o, sizes=c(1:6), rfeControl=control)
+print(results)
+predictors(results)
+plot(results, type=c("g", "o"), main = "Recursive Feature Elimination Results")
+
+#create simple c5 decision tree
+
+#Don't factor the result and ambition (according to RFE)
+c5_model <- C5.0(d_train[,c(-1,-6)],d_train$dec_o)
+
+print(c5_model)
+plot(c5_model)
+
+#Predict testing results according to the model
+c5_pred <- predict(c5_model, d_test[,-1])
+#create crosstable matrix to assess performance
+
+CrossTable(d_test$dec_o, c5_pred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('Actual Type', 'Predicted Type'))
+#has ~0.742 accuracy
+
+tree_model = ctree(dec_o ~ ., d_train[,-6]) #Make sure model is running on right stuff
+plot(tree_model)
+ctree_pred <- predict(tree_model,d_test[,-1])
+CrossTable(d_test$dec_o, ctree_pred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('Actual Type', 'Predicted Type'))
+#Much less accuracy? interesting
