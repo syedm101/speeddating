@@ -43,41 +43,32 @@ date3 <- date2[-manyNAs(date2),]
 
 #Viewing correlations
 correlation_cutoff <- 0.75
-correlationMatrix <- cor(date[,-which(names(date)
+correlationMatrix <- cor(date3[,-which(names(date3)
                          %in% c('id', 'iid', 'idg', 'partner', 'pid', 'from'))],
                          use = "complete.obs")
 correlated <- findCorrelation(correlationMatrix, cutoff=correlation_cutoff)
-correlationMatrix2 <- as.data.frame(correlationMatrix)
+correlationMatrix2 <- as.data.frame(correlationMatrix[,correlated])
 print(correlated)
 
-correlationMatrix2 <- correlationMatrix2[,correlated]
-correlationMatrix2 <- subset(correlationMatrix2, (attr1_2 >= correlation_cutoff| attr3_2  >= correlation_cutoff
-                                                  | amb3_2  >= correlation_cutoff | museums  >= correlation_cutoff))
+correlationMatrix2 <- subset(correlationMatrix2, (correlationMatrix2 >= correlation_cutoff))
+#Obvious strong correlation between museums and art
 
 #Graphical Visualization of Correlation
 #Created a subset of the ratng factors
-correlation_subset <- date[,c(15:27,60:89)]
+correlation_subset <- date3[,c(18:21,27:56)]
 subset_correlationMatrix <- cor(correlation_subset, use = 'complete.obs')
 
 #Visualization of the correlations within the subset of rating factors
 #Allows for the visualization of 'trade-offs' when marking preferences
-corrplot(subset_correlationMatrix, method = 'circle', type= 'lower', insig = 'blank', main = 'Correlation of Rating Attributes')
-
-#Created another subset for direct comparison (acutal vs. perceived interests, participant vs. partner ratings)
-correlation_subset2 <- date[,c(15:20, 72:77, 21:27, 83:89)]
-subset_correlationMatrix2 <- cor(correlation_subset2, use = 'complete.obs')
-
-#Comparison of correlation with rating attributes
-corrplot(subset_correlationMatrix2, method = 'circle', type= 'lower', insig = 'blank', 
-         main = 'Correlation of Rating Attributes')
+corrplot(subset_correlationMatrix, method = 'circle', type= 'lower', insig = 'blank', 
+         main = 'Correlation of Rating Attributes', mar=c(0,0,1,0))
 
 #Visualization of the correlations between all attributes (very difficult to see)
 corrplot(correlationMatrix, method = 'circle', type = 'lower', insig = 'blank', 
          main = 'Comparison of the Correlation of All Attributes')
 
 #Plot colors
-cbPalette <- c("#ffb3e6", "#56B4E9")
-
+cbPalette <- c("#ffb3e6", "#56B4E9") #Set colors for pink and blue to easily represent males and females in graphs
 
 #### Beginning Data Exploration ####
 female <- subset(date3, date3$gender == 0)
@@ -86,6 +77,7 @@ male <- subset(date3, date3$gender == 1)
 #Males vs. Females Preferences
 means1 <- aggregate(date3,by=list(date3$gender),mean, na.rm = TRUE)
 means1 <- means1[,c('gender', 'attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1')]
+means1_diff <- means1[1,] - means1[2,] #Difference between 0 and 1
 means1 <- rename(means1, c('attr1_1' = 'Attractiveness', 'sinc1_1' = 'Sincerity', 'intel1_1' = 'Intelligence', 
                  'fun1_1' = 'Fun', 'amb1_1' = 'Ambition', 'shar1_1' = 'Shared Interests'))
 means1 <-melt(means1,id.vars="gender")
@@ -107,7 +99,8 @@ means2f <- subset(means2f, gender == 0)
 means2f <- rename(means2f, c('attr1_1' = 'Attractiveness', 'sinc1_1' = 'Sincerity', 'intel1_1' = 'Intelligence', 
                              'fun1_1' = 'Fun', 'amb1_1' = 'Ambition', 'shar1_1' = 'Shared Interests'))
 
-means2c <- rbind(means2m, means2f)
+means2c <- rbind(means2f, means2m)
+means2c_diff <- means2c[1,] - means2c[2,]
 means2c <-melt(means2c,id.vars="gender")
 
 means2_graph <- ggplot(means2c,aes(x=variable,y=value,fill=factor(gender)))+ geom_bar(stat="identity",position="dodge")+
@@ -127,10 +120,59 @@ means3m <- subset(means3m, gender == 1)
 means3m <- rename(means3m, c('attr1_1' = 'Attractiveness', 'sinc1_1' = 'Sincerity', 'intel1_1' = 'Intelligence', 
                              'fun1_1' = 'Fun', 'amb1_1' = 'Ambition', 'shar1_1' = 'Shared Interests'))
 
-means3c <- rbind(means3m, means3f)
+means3c <- rbind(means3f, means3m)
+means3c_diff <- means3c[1,] - means3c[2,]
 means3c <-melt(means3c,id.vars="gender")
 
 cbPalette <- c("#56B4E9", "#ffb3e6")
 means3_graph <- ggplot(means3c,aes(x=variable,y=value,fill=factor(gender)))+ geom_bar(stat="identity",position="dodge")+
   scale_fill_manual(values = cbPalette, name="Key", breaks=c(0, 1), labels=c("What Males Want", "What Females Think Males Want")) + 
   xlab("Attribute")+ylab("Mean Rating") + ggtitle('Female Perceptions of the other Sex vs. Reality')
+
+#Who put 100 for attractiveness and how successful were they? Exploration for humor's sake
+hundred_attr <- subset(date3, date3$attr1_1 == 100)
+
+#All males marked 100 for desired attractiveness
+hundred_attr_graph <- ggplot(hundred_attr,aes(factor(gender, levels = c(0,1)), ,fill=factor(gender)))+ geom_bar() + 
+  scale_fill_manual(values = cbPalette, name="Key", breaks=c(0, 1), labels=c("Females", "Males")) + 
+  xlab("Sex")+ylab("Count of Individuals") + ggtitle('Individuals who marked 100 for Desired Attractiveness') + 
+  scale_x_discrete(drop=FALSE)
+
+#How successful were they?
+hundred_attr_graph_success <- ggplot(hundred_attr,aes(factor(match, levels = c(0,1)), ,fill=factor(match)))+ 
+  geom_bar() + scale_fill_manual(values = cbPalette, name="Key", breaks=c(0, 1), labels=c("No Match", "Match")) + 
+  xlab("Match")+ylab("Count of Matches") + ggtitle('Individuals who marked 100 for Desired Attractiveness, Outcomes') + 
+  scale_x_discrete(drop=FALSE)
+
+#Was it because they were really picky?
+hundred_attr_graph_success2 <- ggplot(hundred_attr,aes(factor(dec, levels = c(0,1)), ,fill=factor(match)))+ geom_bar() + 
+  scale_fill_manual(values = cbPalette, name="Key", breaks=c(0, 1), labels=c("Did not want to see again", "Wanted to see again")) + 
+  xlab("Decision by Male")+ylab("Count of Decisions") + ggtitle('Individuals who marked 100 for Desired Attractiveness, Decisions') + 
+  scale_x_discrete(drop=FALSE)
+
+
+#Exporing Date Order in the Night and Matches--Best time/order to speed date?
+match_time <- date3[, c("wave", "order", "match")]
+match_time$wave <- factor(match_time$wave)
+match_time2 <- aggregate(match~order+wave,data=match_time,FUN=sum)
+
+##Scatter plot with number of matches vs. order, grouped by wave
+time_scatter <- ggplot(data = match_time2, aes(x = order, y = match, colour = wave)) +       
+                geom_jitter(aes(group = wave)) + geom_point() + ggtitle('Number of Matches vs. Order in the Night by Wave')
+
+match_time3 <- match_time2
+match_time3$order1 <- match_time3$order
+match_time3$order <- NULL
+match_time3 <- sqldf("select order1, wave, max(match) from match_time3 group by wave")
+
+##We looked at each wave and the order in the wave that had the most matches. We then plotted the frequency of the occurances
+##by order.
+match_time_graph <- ggplot(match_time3,aes(order1)) + geom_bar() + xlab("Order")+ 
+  ylab("Count where matches were a maximum") + ggtitle('Occurance of the Max Number of Matches in Each Wave')
+
+
+match_time4 <- sqldf("select wave, avg(match) as MatchAvg from match_time2 group by wave")
+
+##We looked at the Average Matches per order for all waves
+match_time_graph2 <- ggplot(match_time4,aes(x=wave, y=MatchAvg)) + geom_bar(stat="identity") + xlab("Order")+ 
+  ylab("Average Matches") + ggtitle('Average Matches per Order for all Waves')
