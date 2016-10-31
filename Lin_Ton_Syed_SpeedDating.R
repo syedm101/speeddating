@@ -11,6 +11,7 @@ library(randomForest)
 library(gmodels)
 library(party)
 library(C50)
+library(RWeka)
 
 #Import Data
 #Data should be sourced within the project, using relative path
@@ -282,3 +283,13 @@ CrossTable(d_test$dec_o, ctree_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('Actual Type', 'Predicted Type'))
 #75.3% accuracy
+
+#Using JRIP
+jrip_model <- JRip(dec_o~.,data=d_train)
+jrip_model
+
+jrip_pred <- predict(jrip_model, d_test)
+CrossTable(d_test$dec_o, jrip_pred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('Actual Type', 'Predicted Type'))
+#75.5% accuracy
