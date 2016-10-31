@@ -231,6 +231,21 @@ predictors(results)
 plot(results, type=c("g", "o"), main = "Recursive Feature Elimination Results")
 
 #create simple c5 decision tree
+#Using all attributes
+c5_all <- C5.0(d_train[,-1],d_train$dec_o)
+c5_all_pred <- predict(c5_all, d_test[,-1])
+CrossTable(d_test$dec_o, c5_all_pred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('Actual Type', 'Predicted Type'))
+#74.8% accuracy
+
+#Using the top 2 (attractiveness and shared interests)
+c5_2 <- C5.0(d_train[,c(2,7)],d_train$dec_o)
+c5_2_pred <- predict(c5_2, d_test[,-1])
+CrossTable(d_test$dec_o, c5_2_pred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('Actual Type', 'Predicted Type'))
+#75.3% accuracy
 
 #Don't factor the result and ambition (according to RFE)
 c5_model <- C5.0(d_train[,c(-1,-6)],d_train$dec_o)
@@ -245,7 +260,7 @@ c5_pred <- predict(c5_model, d_test[,-1])
 CrossTable(d_test$dec_o, c5_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('Actual Type', 'Predicted Type'))
-#has ~0.742 accuracy
+#74.2% accuracy
 
 tree_model = ctree(dec_o ~ ., d_train[,-6]) #Make sure model is running on right stuff
 plot(tree_model)
@@ -253,4 +268,4 @@ ctree_pred <- predict(tree_model,d_test[,-1])
 CrossTable(d_test$dec_o, ctree_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('Actual Type', 'Predicted Type'))
-#Much less accuracy? interesting
+#75.3% accuracy
