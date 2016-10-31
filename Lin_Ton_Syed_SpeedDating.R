@@ -81,25 +81,34 @@ female <- subset(date3, date3$gender == 0)
 male <- subset(date3, date3$gender == 1)
 
 #Males vs. Females Preferences
-means1 <- aggregate(date3,by=list(date3$gender),mean, na.rm = TRUE)
+#Selecting only the unique responses (since there are repeats for each person)
+means1 <- sqldf("select distinct iid, gender, attr1_1, sinc1_1, intel1_1, fun1_1, amb1_1, shar1_1
+               from date3")
+#Aggregating by gender for mean values
+means1 <- aggregate(means1[-1],by=list(means1$gender),mean, na.rm = TRUE)
 means1 <- means1[,c('gender', 'attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1')]
 means1_diff <- means1[1,] - means1[2,] #Difference between 0 and 1
 means1 <- rename(means1, c('attr1_1' = 'Attractiveness', 'sinc1_1' = 'Sincerity', 'intel1_1' = 'Intelligence', 
                  'fun1_1' = 'Fun', 'amb1_1' = 'Ambition', 'shar1_1' = 'Shared Interests'))
+#Transposing
 means1 <-melt(means1,id.vars="gender")
-
+#Graphing
 means1_graph <- ggplot(means1,aes(x=variable,y=value,fill=factor(gender)))+ geom_bar(stat="identity",position="dodge")+
   scale_fill_manual(values = cbPalette, name="Gender", breaks=c(0, 1), labels=c("Female", "Male"))+ xlab("Attribute")+ylab("Mean Rating") +
   ggtitle('Female vs. Male Preferences')
 
 #Perceptions of the Opposite Sex (Males for Females)
-means2m <- aggregate(date3,by=list(date3$gender),mean, na.rm = TRUE)
+means2m <- sqldf("select distinct iid, gender, attr2_1, sinc2_1, intel2_1, fun2_1, amb2_1, shar2_1
+               from date3")
+means2m <- aggregate(means2m[-1],by=list(means2m$gender),mean, na.rm = TRUE)
 means2m <- means2m[,c('gender', 'attr2_1', 'sinc2_1', 'intel2_1', 'fun2_1', 'amb2_1', 'shar2_1')]
 means2m <- subset(means2m, gender == 1)
 means2m <- rename(means2m, c('attr2_1' = 'Attractiveness', 'sinc2_1' = 'Sincerity', 'intel2_1' = 'Intelligence', 
                            'fun2_1' = 'Fun', 'amb2_1' = 'Ambition', 'shar2_1' = 'Shared Interests'))
 
-means2f <- aggregate(date3,by=list(date3$gender),mean, na.rm = TRUE)
+means2f <- sqldf("select distinct iid, gender, attr1_1, sinc1_1, intel1_1, fun1_1, amb1_1, shar1_1
+               from date3")
+means2f <- aggregate(means2f[-1],by=list(means2f$gender),mean, na.rm = TRUE)
 means2f <- means2f[,c('gender', 'attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1')]
 means2f <- subset(means2f, gender == 0)
 means2f <- rename(means2f, c('attr1_1' = 'Attractiveness', 'sinc1_1' = 'Sincerity', 'intel1_1' = 'Intelligence', 
@@ -114,13 +123,17 @@ means2_graph <- ggplot(means2c,aes(x=variable,y=value,fill=factor(gender)))+ geo
   xlab("Attribute")+ylab("Mean Rating") + ggtitle('Male Perceptions of the other Sex vs. Reality')
 
 #Perceptions of the Opposite Sex (Females for Males)
-means3f <- aggregate(date3,by=list(date3$gender),mean, na.rm = TRUE)
-means3f <- means3f[,c('gender', 'attr2_1', 'sinc2_1', 'intel2_1', 'fun2_1', 'amb2_1', 'shar2_1')]
+means3f <- sqldf("select distinct iid, gender, attr2_1, sinc2_1, intel2_1, fun2_1, amb2_1, shar2_1
+               from date3")
+means3f <- aggregate(means3f[-1],by=list(means3f$gender),mean, na.rm = TRUE)
 means3f <- subset(means3f, gender == 0)
+means3f <- means3f[,c('gender', 'attr2_1', 'sinc2_1', 'intel2_1', 'fun2_1', 'amb2_1', 'shar2_1')]
 means3f <- rename(means3f, c('attr2_1' = 'Attractiveness', 'sinc2_1' = 'Sincerity', 'intel2_1' = 'Intelligence', 
                              'fun2_1' = 'Fun', 'amb2_1' = 'Ambition', 'shar2_1' = 'Shared Interests'))
 
-means3m <- aggregate(date3,by=list(date3$gender),mean, na.rm = TRUE)
+means3m <- sqldf("select distinct iid, gender, attr1_1, sinc1_1, intel1_1, fun1_1, amb1_1, shar1_1
+               from date3")
+means3m <- aggregate(means3m[-1],by=list(means3m$gender),mean, na.rm = TRUE)
 means3m <- means3m[,c('gender', 'attr1_1', 'sinc1_1', 'intel1_1', 'fun1_1', 'amb1_1', 'shar1_1')]
 means3m <- subset(means3m, gender == 1)
 means3m <- rename(means3m, c('attr1_1' = 'Attractiveness', 'sinc1_1' = 'Sincerity', 'intel1_1' = 'Intelligence', 
