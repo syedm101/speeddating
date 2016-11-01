@@ -1,3 +1,8 @@
+#Speed Dating Anotated R Code
+#Nathan Lin, Andrew Ton, Mansoor Syed
+#DS 4559
+#10/31/2016
+
 #Libraries Needed
 library(caret)
 library(corrplot)
@@ -30,7 +35,6 @@ date <- date_original[,-which(names(date_original) %in% names(which(colSums(is.n
 date <- date[,-which(names(date) %in%
                        c('condtn', 'position', 'positin1', 'undergrd', 'field', 'career', 'zipcode', 'goal',
                          'date', 'go_out'))]
-
 
 #Viewing ones on a different scale -- appears data from 1 to 10 has been re-scaled
 different_scale <- subset(date, date$wave %in% c(6,7,8,9))
@@ -70,7 +74,7 @@ subset_correlationMatrix <- cor(correlation_subset, use = 'complete.obs')
 corrplot(subset_correlationMatrix, method = 'circle', type= 'lower', insig = 'blank', 
          main = 'Correlation of Rating Attributes', mar=c(0,0,1,0))
 
-#Visualization of the correlations between all attributes (very difficult to see)
+#Visualization of the correlations between all attributes (very difficult to see, not particularly useful)
 corrplot(correlationMatrix, method = 'circle', type = 'lower', insig = 'blank', 
          main = 'Comparison of the Correlation of All Attributes')
 
@@ -115,6 +119,7 @@ means2f <- subset(means2f, gender == 0)
 means2f <- rename(means2f, c('attr1_1' = 'Attractiveness', 'sinc1_1' = 'Sincerity', 'intel1_1' = 'Intelligence', 
                              'fun1_1' = 'Fun', 'amb1_1' = 'Ambition', 'shar1_1' = 'Shared Interests'))
 
+#rbind to stack the two dataframes
 means2c <- rbind(means2f, means2m)
 means2c_diff <- means2c[1,] - means2c[2,]
 means2c <-melt(means2c,id.vars="gender")
@@ -144,12 +149,14 @@ means3c <- rbind(means3f, means3m)
 means3c_diff <- means3c[1,] - means3c[2,]
 means3c <-melt(means3c,id.vars="gender")
 
+#Switching colors
 cbPalette <- c("#56B4E9", "#ffb3e6")
+
 means3_graph <- ggplot(means3c,aes(x=variable,y=value,fill=factor(gender)))+ geom_bar(stat="identity",position="dodge")+
   scale_fill_manual(values = cbPalette, name="Key", breaks=c(0, 1), labels=c("What Males Want", "What Females Think Males Want")) + 
   xlab("Attribute")+ylab("Mean Rating") + ggtitle('Female Perceptions of the other Sex vs. Reality')
 
-#Who put 100 for attractiveness and how successful were they? Exploration for humor's sake
+#Who put 100 for attractiveness and how successful were they? Exploring an interesting quirk
 hundred_attr <- subset(date3, date3$attr1_1 == 100)
 
 #All males marked 100 for desired attractiveness
@@ -197,11 +204,11 @@ match_time4 <- sqldf("select wave, avg(match) as MatchAvg from match_time2 group
 match_time_graph2 <- ggplot(match_time4,aes(x=wave, y=MatchAvg)) + geom_bar(stat="identity") + xlab("Order")+ 
   ylab("Average Matches") + ggtitle('Average Matches per Order for all Waves')
 
-#*************************************
-#####Begin Machine learning process####
+
+####Begin Machine Learning Process####
 
 #Classify the decision of a partner based on their rating of you
-#The classifier is "dec_o" and the attributes "attr_o	sinc_o	intel_o	fun_o	amb_o	shar_o"
+#The classifier is "dec_o" and the attributes are "attr_o,	sinc_o,	intel_o,	fun_o,	amb_o,	shar_o"
 
 #returns the column number (so I can easily subset the data)
 grep("^dec_o$", colnames(date3) ) #19th column
@@ -215,6 +222,7 @@ View(rel_data)#Has around 8000 rows
 
 sum(is.na(rel_data)) #Need to be wary of NAs
 rel_data <- na.omit(rel_data) #remove all rows with NAs (still have ~7000 rows after this operation)
+sum(is.na(rel_data)) #Sanity Check
 
 #Randomly order the data
 set.seed(7)
@@ -222,13 +230,13 @@ rel_data <- rel_data[order(runif(6965)), ]
 #Set dec_o as factor
 rel_data$dec_o <- factor(rel_data$dec_o)
 
-#Split the data ~80 training 20 testing
+#Split the data ~80% training and 20% testing
 d_train <- rel_data[(1:5500),]
 d_test <- rel_data[5500:6965,]
 
 #One way to look at attribute importance
 model <- train(dec_o ~., data=d_train, method="lvq", preProcess="scale")#, trControl=control)
-# estimate variable importance
+#Estimating variable importance
 importance <- varImp(model, scale=FALSE)
 print(importance)
 plot(importance, ylab = 'Attributes', main = 'Attribute Importance')
@@ -238,13 +246,14 @@ plot(importance, ylab = 'Attributes', main = 'Attribute Importance')
 set.seed(7)
 View(d_train[,-1])
 
+#Recursive Feature Elimination
 control <- rfeControl(functions=rfFuncs, method="cv", number=10) #number = 10?
 results <- rfe(d_train[,-1], d_train$dec_o, sizes=c(1:6), rfeControl=control)
 print(results)
 predictors(results)
 plot(results, type=c("g", "o"), main = "Recursive Feature Elimination Results")
 
-#create simple c5 decision tree
+#create simple C5.0 decision trees
 #Using all attributes
 c5_all <- C5.0(d_train[,-1],d_train$dec_o)
 c5_all_pred <- predict(c5_all, d_test[,-1])
@@ -274,8 +283,9 @@ c5_pred <- predict(c5_model, d_test[,-1])
 CrossTable(d_test$dec_o, c5_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('Actual Type', 'Predicted Type'))
-#74.2% accuracy
+#74.6% accuracy
 
+#Created a conditional inference tree
 tree_model = ctree(dec_o ~ ., d_train[,-6]) #Make sure model is running on right stuff
 plot(tree_model)
 ctree_pred <- predict(tree_model,d_test[,-1])
@@ -284,7 +294,7 @@ CrossTable(d_test$dec_o, ctree_pred,
            dnn = c('Actual Type', 'Predicted Type'))
 #75.3% accuracy
 
-#Using JRIP
+#Using jRip
 jrip_model <- JRip(dec_o~.,data=d_train)
 jrip_model
 
@@ -293,3 +303,5 @@ CrossTable(d_test$dec_o, jrip_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('Actual Type', 'Predicted Type'))
 #75.5% accuracy
+
+####End of R Code for Speed Dating####
