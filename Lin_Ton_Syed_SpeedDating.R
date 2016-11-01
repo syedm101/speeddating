@@ -268,40 +268,35 @@ c5_2_pred <- predict(c5_2, d_test[,-1])
 CrossTable(d_test$dec_o, c5_2_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('Actual Type', 'Predicted Type'))
-#75.3% accuracy
-
-#Don't factor the result and ambition (according to RFE)
-c5_model <- C5.0(d_train[,c(-1,-6)],d_train$dec_o)
-
-print(c5_model)
-plot(c5_model)
-
-#Predict testing results according to the model
-c5_pred <- predict(c5_model, d_test[,-1])
-#create crosstable matrix to assess performance
-
-CrossTable(d_test$dec_o, c5_pred,
-           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
-           dnn = c('Actual Type', 'Predicted Type'))
-#74.6% accuracy
+#75.5% accuracy
 
 #Created a conditional inference tree
-tree_model = ctree(dec_o ~ ., d_train[,-6]) #Make sure model is running on right stuff
+tree_model = ctree(dec_o ~ ., d_train[,c(1,2,7)]) 
 plot(tree_model)
 ctree_pred <- predict(tree_model,d_test[,-1])
 CrossTable(d_test$dec_o, ctree_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('Actual Type', 'Predicted Type'))
-#75.3% accuracy
+#75.5% accuracy
 
 #Using jRip
-jrip_model <- JRip(dec_o~.,data=d_train)
+jrip_model <- JRip(dec_o~.,data=d_train[c(1,2,7)])
 jrip_model
 
 jrip_pred <- predict(jrip_model, d_test)
 CrossTable(d_test$dec_o, jrip_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('Actual Type', 'Predicted Type'))
-#75.5% accuracy
+#76.0% accuracy
+
+#Using jRip
+jrip2_model <- JRip(dec_o~.,data=d_train)
+jrip2_model
+
+jrip_pred <- predict(jrip_model, d_test)
+CrossTable(d_test$dec_o, jrip_pred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('Actual Type', 'Predicted Type'))
+#76.0% accuracy
 
 ####End of R Code for Speed Dating####
