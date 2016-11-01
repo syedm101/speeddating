@@ -1,3 +1,8 @@
+#Speed Dating Anotated R Code, Twitter Supplement (Charlottesville)
+#Nathan Lin, Andrew Ton, Mansoor Syed
+#DS 4559
+#10/31/2016
+
 ## Let's get started looking at sentiment analysis.  We will investigate tweets in order to do so.
 
 ## Libraries we'll need (install what you do not already have installed):
