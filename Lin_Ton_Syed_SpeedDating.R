@@ -289,4 +289,14 @@ CrossTable(d_test$dec_o, jrip_pred,
            dnn = c('Actual Type', 'Predicted Type'))
 #76.0% accuracy
 
+#Using jRip with all attributes for a baseline
+jrip2_model <- JRip(dec_o~.,data=d_train)
+jrip2_model
+
+jrip_pred <- predict(jrip_model, d_test)
+CrossTable(d_test$dec_o, jrip_pred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('Actual Type', 'Predicted Type'))
+#76.0% accuracy
+
 ####End of R Code for Speed Dating####
