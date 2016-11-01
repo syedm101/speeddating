@@ -1,8 +1,13 @@
 # speeddating
 Speed Dating
+
 Anthony Nathan Lin, Andrew Ton, Mansoor Syed
+
 DS 4559 - Professor Abigail Flower
+
 Fall 2016, University of Virginia
+
+
 
 Analysis of a dataset from kaggle.com
 
