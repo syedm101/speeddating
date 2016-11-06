@@ -125,7 +125,7 @@ means2c_diff <- means2c[1,] - means2c[2,]
 means2c <-melt(means2c,id.vars="gender")
 
 means2_graph <- ggplot(means2c,aes(x=variable,y=value,fill=factor(gender)))+ geom_bar(stat="identity",position="dodge")+
-  scale_fill_manual(values = cbPalette, name="Key", breaks=c(0, 1), labels=c("Want Females Want", "What Males Think Females Want")) + 
+  scale_fill_manual(values = cbPalette, name="Key", breaks=c(0, 1), labels=c("What Females Want", "What Males Think Females Want")) + 
   xlab("Attribute")+ylab("Mean Rating") + ggtitle('Male Perceptions of the other Sex vs. Reality')
 
 #Perceptions of the Opposite Sex (Females for Males)
@@ -289,7 +289,7 @@ CrossTable(d_test$dec_o, jrip_pred,
            dnn = c('Actual Type', 'Predicted Type'))
 #76.0% accuracy
 
-#Using jRip
+#Using jRip with all attributes for a baseline
 jrip2_model <- JRip(dec_o~.,data=d_train)
 jrip2_model
 
